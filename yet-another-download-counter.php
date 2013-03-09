@@ -153,14 +153,27 @@
 		return false;
 	}
 	
+	function yadc_is_filtered_url($att_id){
+		
+		//TODO: Make this configurable
+		$filtered_exts = 'zip,rar,7z,dmg,tgz,tar.gz,exe,deb,rpm';
+		
+		$file = get_attached_file($att_id);
+		$ext = pathinfo($file, PATHINFO_EXTENSION);
+		
+		return in_array($ext,explode(',', $filtered_exts));
+	}
+	
 	function yadc_attachment_url_filter($url){
 		static $filter_running = false;
 		
 		if(!$filter_running){
 			$filter_running = true;
 			$att_id = yadc_get_attachment_id($url);
-			$att_info = get_post($att_id);
-			$url = site_url("/download-file/{$att_id}/{$att_info->post_name}");
+			if(yadc_is_filtered_url($att_id)){
+				$att_info = get_post($att_id);
+				$url = site_url("/download-file/{$att_id}/{$att_info->post_name}");
+			}
 			$filter_running = false;
 		}
 		
