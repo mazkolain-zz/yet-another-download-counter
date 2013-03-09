@@ -227,6 +227,9 @@
 			
 			}elseif(!yadc_is_filtered_url($att_id)){
 				echo '<em>Not tracked</em>';
+			
+			}else{
+				echo 0;
 			}
 		}
 	}
