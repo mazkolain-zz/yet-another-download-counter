@@ -122,8 +122,10 @@
 					
 			//We have to send the file again
 			}else{
+				$filename = basename($file);
 				header('Last-Modified: '.gmdate('D, d M Y H:i:s', filemtime($file)).' GMT', true);
 				header('Content-Type: '.get_post_mime_type($post->ID));
+				header('Content-Disposition: attachment; filename='.$filename);
 				header('Content-Length: '.filesize($file));
 				echo readfile($file);
 			}
