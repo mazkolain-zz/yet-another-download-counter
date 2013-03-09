@@ -222,7 +222,12 @@
 	function yadc_column_value($column_name, $att_id) {
 		if($column_name == 'yadc_downloads'){
 			$m = new YADC_Model();
-			echo $m->getCount($att_id);
+			if($count = $m->getCount($att_id)){
+				echo $count;
+			
+			}elseif(!yadc_is_filtered_url($att_id)){
+				echo '<em>Not tracked</em>';
+			}
 		}
 	}
 	
