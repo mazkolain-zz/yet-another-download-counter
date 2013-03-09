@@ -127,7 +127,7 @@
 				header('Content-Type: '.get_post_mime_type($post->ID));
 				header('Content-Disposition: attachment; filename='.$filename);
 				header('Content-Length: '.filesize($file));
-				echo readfile($file);
+				readfile($file);
 			}
 		}
 	}
