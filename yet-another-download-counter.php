@@ -28,65 +28,111 @@
 	 * along with Foobar.  If not, see <http://www.gnu.org/licenses/>
 	 */
 	
-
+	
+	interface YADC_AttachmentLockManager_Interface
+	{
+		public static function newInstance($att_id);
+	
+		public function isLocked();
+	
+		public function acquireLock();
+	
+		public function releaseLock();
+	}
+	
+	
+	class YADC_AttachmentLockManager_File implements YADC_AttachmentLockManager_Interface
+	{
+		const WaitTimeout = 15;
+	
+		private $_att_id;
+	
+		private $_lock_owned;
+	
+	
+		private function __construct($att_id){
+			$this->_att_id = $att_id;
+			$this->_lock_owned = false;
+			$this->_lock_fp = null;
+		}
+	
+		public static function newInstance($att_id){
+			return new YADC_AttachmentLockManager_File($att_id);
+		}
+	
+		public function _getTempFile(){
+			$upload_info = wp_upload_dir();
+			return get_temp_dir().".yadc-write-lock-att-{$this->_att_id}";
+		}
+	
+		public function isLocked(){
+			return $this->_lock_owned;
+		}
+	
+		public function acquireLock(){
+			if($this->_lock_owned){
+				throw new RuntimeException("Attachment '{$this->_att_id}' already locked.");
+			}
+				
+			$wait_time = 0;
+			$filename =  $this->_getTempFile();
+				
+			do{
+				//Let's wait if we fail to get the lock
+				if(($fp = fopen($filename, 'x')) === false){
+						
+					//If wait timeout exceeds some amount of time
+					if($wait_time > self::WaitTimeout){
+						throw new RuntimeException('Failed to get lock, operation timed out.');
+					}
+						
+					//Wait for a quarter of a second
+					$wait_time += .25;
+					sleep(.25);
+	
+					//Otherwise tell that the lock is owned
+				}else{
+					$this->_lock_owned = true;
+					fclose($fp);
+				}
+					
+			}while(!$this->_lock_owned);
+		}
+	
+		public function releaseLock(){
+			if(!$this->_lock_owned){
+				throw new RuntimeException('Cannot release a not owned lock.');
+			}
+				
+			unlink($this->_getTempFile());
+			$this->_lock_owned = false;
+		}
+	
+		public function __destruct(){
+			if($this->isLocked()){
+				$this->releaseLock();
+			}
+		}
+	}
+	
+	
 	class YADC_Model
 	{
-		const LockMetaName = '_yadc_update_lock';
-		
 		const CounterMetaName = '_yadc_counter';
-		
-		const LockTimeout = 10;
-		
-		protected function _getLock($attachment_id){
-			do{
-				
-				//Try to save the lock meta field
-				$res = add_post_meta(
-					$attachment_id, self::LockMetaName, time(), true
-				);
-				
-				//If obtaining the lock failed, check if it timed out
-				if(!$res){
-					
-					//Get the current lock's date
-					$lock_ts = get_post_meta(
-						$attachment_id, self::LockMetaName, true
-					);
-					
-					//If lock expired, regain it
-					if($lock_ts + self::LockTimeout < time()){
-						$res = update_post_meta(
-							$attachment_id, self::LockMetaName, time()
-						);
-					}
-					
-					//If res is still false, let's sleep for a short period
-					if(!$res){
-						usleep(100000);
-					}
-				
-				}
-				
-			}while(!$res);
-		}
-		
-		protected function _releaseLock($attachment_id){
-			delete_post_meta($attachment_id, self::LockMetaName);
-		}
 		
 		public function getCount($attachment_id){
 			return get_post_meta($attachment_id, self::CounterMetaName, true);
 		}
 		
 		public function incrementCount($attachment_id){
-			$this->_getLock($attachment_id);
-			
+			$lm = YADC_AttachmentLockManager_File::newInstance($attachment_id);
+			$lm->acquireLock();
 			update_post_meta(
 				$attachment_id,
 				self::CounterMetaName,
 				$this->getCount($attachment_id) + 1
 			);
-			$this->_releaseLock($attachment_id);
+			$lm->releaseLock();
 		}
 	}
 	
