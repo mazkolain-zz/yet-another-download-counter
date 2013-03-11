@@ -127,6 +127,7 @@
 		public function incrementCount($attachment_id){
 			$lm = YADC_AttachmentLockManager_File::newInstance($attachment_id);
 			$lm->acquireLock();
+			clean_post_cache($attachment_id);
 			update_post_meta(
 				$attachment_id,
 				self::CounterMetaName,
