@@ -43,7 +43,7 @@
 	
 	class YADC_AttachmentLockManager_File implements YADC_AttachmentLockManager_Interface
 	{
-		const WaitTimeout = 15;
+		const WaitTimeout = 5;
 	
 		private $_att_id;
 	
@@ -88,9 +88,9 @@
 						
 					//Wait for a quarter of a second
 					$wait_time += .25;
-					sleep(.25);
+					usleep(2.5 * 100000);
 	
-					//Otherwise tell that the lock is owned
+				//Otherwise tell that the lock is owned
 				}else{
 					$this->_lock_owned = true;
 					fclose($fp);
