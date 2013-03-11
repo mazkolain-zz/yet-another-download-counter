@@ -2,7 +2,7 @@
 
 	/*
 	Plugin Name: Yet another download counter
-	Plugin URI: http://azkotoki.org
+	Plugin URI: https://github.com/mazkolain/yet-another-download-counter
 	Description: Another download counter plugin. Simple, clean, no new tables.
 	Author: Mikel Azkolain
 	Version: 0.1
