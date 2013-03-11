@@ -80,6 +80,7 @@
 		
 		public function incrementCount($attachment_id){
 			$this->_getLock($attachment_id);
+			
 			update_post_meta(
 				$attachment_id,
 				self::CounterMetaName,
@@ -90,9 +91,6 @@
 	}
 	
 	function yadc_is_client_cache_valid($path){
-		$client_date = strtotime($_SERVER['HTTP_IF_MODIFIED_SINCE']);
-		$file_date = filemtime($path);
-	
 		if(!isset($_SERVER['HTTP_IF_MODIFIED_SINCE'])){
 			return false;
 	
