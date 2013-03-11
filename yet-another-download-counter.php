@@ -250,4 +250,9 @@
 	//Register the url rewriter rules
 	add_action('init', 'yadc_register_rewrite_rules');
 	
-	register_activation_hook(__FILE__, 'download_post_type_register_rewrite_flush');
+	function yadc_rewrite_flush(){
+		yadc_register_rewrite_rules();
+		flush_rewrite_rules();
+	}
+	
+	register_activation_hook(__FILE__, 'yadc_rewrite_flush');
