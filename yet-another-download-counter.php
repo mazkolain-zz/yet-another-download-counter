@@ -211,6 +211,13 @@
 		return in_array($ext,explode(',', $filtered_exts));
 	}
 	
+	function yadc_get_download_count($att_id){
+		$m = new YADC_Model();
+		$num = $m->getCount($att_id);
+		
+		return $num? $num : 0;
+	}
+	
 	function yadc_attachment_url_filter($url){
 		static $filter_running = false;
 		
